@@ -1,8 +1,3 @@
-/**
- * Store Redux: configureStore y tipo RootState.
- * Al iniciar la app se debe dispatch loadFavoritesFromStorage -> setFavorites.
- */
-
 import { configureStore } from '@reduxjs/toolkit';
 import productsReducer from './productsSlice';
 import favoritesReducer from './favoritesSlice';

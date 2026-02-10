@@ -1,8 +1,3 @@
-/**
- * Redux slice: listado de productos, paginación y búsqueda.
- * Thunks con createAsyncThunk; estado: items, status, error, page, hasMore.
- */
-
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { Product } from '../types/product';
 import { getProducts, searchProducts } from '../api/client';
@@ -31,7 +26,6 @@ const initialState: ProductsState = {
   searchQuery: '',
 };
 
-/** Primera carga o refresh: reset y fetch desde 0 */
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async (
@@ -52,7 +46,6 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
-/** Cargar más (paginación). Solo para listado sin búsqueda. */
 export const fetchMoreProducts = createAsyncThunk(
   'products/fetchMoreProducts',
   async (_, { getState, rejectWithValue }) => {
@@ -79,7 +72,6 @@ const productsSlice = createSlice({
     },
   },
   extraReducers(builder) {
-    // fetchProducts
     builder
       .addCase(fetchProducts.pending, (state, { meta }) => {
         state.status = 'loading';
@@ -100,7 +92,6 @@ const productsSlice = createSlice({
         state.error = (payload as string) ?? 'Error desconocido';
       });
 
-    // fetchMoreProducts (evitar ids duplicados al concatenar páginas)
     builder
       .addCase(fetchMoreProducts.pending, (state) => {
         state.error = null;

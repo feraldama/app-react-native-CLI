@@ -1,8 +1,3 @@
-/**
- * Tipos según API DummyJSON (products).
- * https://dummyjson.com/docs/products
- */
-
 export interface Product {
   id: number;
   title: string;

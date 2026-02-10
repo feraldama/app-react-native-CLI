@@ -1,8 +1,3 @@
-/**
- * App principal: Provider (Redux), carga de favoritos, navegación.
- * @format
- */
-
 import React, { useEffect } from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

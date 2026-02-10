@@ -1,8 +1,3 @@
-/**
- * Redux slice: favoritos normalizados (ids + entities).
- * Persistencia con AsyncStorage; cargar al iniciar, guardar al cambiar.
- */
-
 import { createSlice } from '@reduxjs/toolkit';
 import type { Product } from '../types/product';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,9 +18,7 @@ async function persistFavorites(state: FavoritesState) {
   try {
     const list = state.ids.map((id) => state.entities[id]).filter(Boolean);
     await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(list));
-  } catch (_) {
-    // ignore
-  }
+  } catch {}
 }
 
 export function loadFavoritesFromStorage(): Promise<Product[]> {
