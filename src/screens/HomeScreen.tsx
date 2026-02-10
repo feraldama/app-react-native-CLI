@@ -14,12 +14,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootStackParamList } from '../navigation/types';
 import type { RootState } from '../store';
 import { fetchProducts, fetchMoreProducts } from '../store/productsSlice';
+import { toggleFavorite } from '../store/favoritesSlice';
 import { useDebounce } from '../hooks/useDebounce';
 import { ProductCard } from '../components/ProductCard';
 import { SearchInput } from '../components/SearchInput';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Home'>;
-const LIMIT = 10;
 
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
@@ -27,6 +27,7 @@ export function HomeScreen() {
   const { items, status, error, hasMore, searchQuery } = useSelector(
     (s: RootState) => s.products
   );
+  const favoriteIds = useSelector((s: RootState) => s.favorites.ids);
   const [searchText, setSearchText] = React.useState('');
   const [refreshing, setRefreshing] = React.useState(false);
   const debouncedSearch = useDebounce(searchText, 300);
@@ -40,7 +41,7 @@ export function HomeScreen() {
 
   useEffect(() => {
     loadInitial(debouncedSearch);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, loadInitial]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -58,9 +59,11 @@ export function HomeScreen() {
       <ProductCard
         product={item}
         onPress={() => navigation.navigate('Detail', { product: item })}
+        isFavorite={favoriteIds.includes(String(item.id))}
+        onFavoritePress={() => dispatch(toggleFavorite(item) as never)}
       />
     ),
-    [navigation]
+    [navigation, favoriteIds, dispatch]
   );
 
   const isLoading = status === 'loading' && items.length === 0;
