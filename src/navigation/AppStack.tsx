@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -10,11 +10,16 @@ import { FavoritesScreen } from '../screens/FavoritesScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const styles = StyleSheet.create({
+  headerButton: { marginRight: 8 },
+  headerButtonText: { color: '#fff', fontWeight: '600' },
+});
+
 function FavoritesHeaderButton() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Home'>>();
   return (
-    <TouchableOpacity onPress={() => navigation.navigate('Favorites')} style={{ marginRight: 8 }}>
-      <Text style={{ color: '#fff', fontWeight: '600' }}>Favoritos</Text>
+    <TouchableOpacity onPress={() => navigation.navigate('Favorites')} style={styles.headerButton}>
+      <Text style={styles.headerButtonText}>Favoritos</Text>
     </TouchableOpacity>
   );
 }
@@ -22,8 +27,8 @@ function FavoritesHeaderButton() {
 function ProductsHeaderButton() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Favorites'>>();
   return (
-    <TouchableOpacity onPress={() => navigation.navigate('Home')} style={{ marginRight: 8 }}>
-      <Text style={{ color: '#fff', fontWeight: '600' }}>Productos</Text>
+    <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.headerButton}>
+      <Text style={styles.headerButtonText}>Productos</Text>
     </TouchableOpacity>
   );
 }
