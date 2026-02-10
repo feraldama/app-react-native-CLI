@@ -137,3 +137,56 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# ============== React Native ==============
+
+# Metro bundler
+.metro-health-check*
+.bundle/
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/**/generated/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+# Keystores (nunca subir a repo; debug.keystore es local)
+# android/app/debug.keystore
+*.jks
+*.keystore
+
+# iOS
+ios/build/
+ios/Pods/
+ios/.xcode.env.local
+ios/DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+
+# macOS
+.DS_Store
+*.pem
+
+# IDE / Editors
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# Buck (legacy)
+.buckd
