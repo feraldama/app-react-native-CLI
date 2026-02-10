@@ -1,0 +1,45 @@
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import type { Product } from '../types/product';
+
+interface ProductCardProps {
+  product: Product;
+  onPress: () => void;
+}
+
+export function ProductCard({ product, onPress }: ProductCardProps) {
+  return (
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+      <Image
+        source={{ uri: product.thumbnail }}
+        style={styles.thumbnail}
+        resizeMode="cover"
+      />
+      <View style={styles.info}>
+        <Text style={styles.title} numberOfLines={2}>
+          {product.title}
+        </Text>
+        <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  thumbnail: { width: 100, height: 100, backgroundColor: '#eee' },
+  info: { flex: 1, padding: 12, justifyContent: 'center' },
+  title: { fontSize: 16, fontWeight: '600', color: '#111', marginBottom: 4 },
+  price: { fontSize: 18, fontWeight: '700', color: '#2563eb' },
+});
