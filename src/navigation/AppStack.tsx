@@ -19,6 +19,15 @@ function FavoritesHeaderButton() {
   );
 }
 
+function ProductsHeaderButton() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Favorites'>>();
+  return (
+    <TouchableOpacity onPress={() => navigation.navigate('Home')} style={{ marginRight: 8 }}>
+      <Text style={{ color: '#fff', fontWeight: '600' }}>Productos</Text>
+    </TouchableOpacity>
+  );
+}
+
 export function AppStack() {
   return (
     <Stack.Navigator
@@ -44,7 +53,10 @@ export function AppStack() {
       <Stack.Screen
         name="Favorites"
         component={FavoritesScreen}
-        options={{ title: 'Favoritos' }}
+        options={{
+          title: 'Favoritos',
+          headerRight: ProductsHeaderButton,
+        }}
       />
     </Stack.Navigator>
   );

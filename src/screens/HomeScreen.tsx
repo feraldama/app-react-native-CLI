@@ -88,7 +88,7 @@ export function HomeScreen() {
       ) : (
         <FlatList
           data={items}
-          keyExtractor={(item) => String(item.id)}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           refreshControl={

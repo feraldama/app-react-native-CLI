@@ -100,13 +100,15 @@ const productsSlice = createSlice({
         state.error = (payload as string) ?? 'Error desconocido';
       });
 
-    // fetchMoreProducts
+    // fetchMoreProducts (evitar ids duplicados al concatenar páginas)
     builder
       .addCase(fetchMoreProducts.pending, (state) => {
         state.error = null;
       })
       .addCase(fetchMoreProducts.fulfilled, (state, { payload }) => {
-        state.items = state.items.concat(payload.products);
+        const existingIds = new Set(state.items.map((p) => p.id));
+        const newProducts = payload.products.filter((p) => !existingIds.has(p.id));
+        state.items = state.items.concat(newProducts);
         state.page += 1;
         state.hasMore = state.items.length < payload.total;
       })
