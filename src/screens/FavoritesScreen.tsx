@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAppSelector } from '../store';
 import type { RootStackParamList } from '../navigation/types';
 import { ProductCard } from '../components/ProductCard';
+import type { Product } from '../types/product';
 import { colors, spacing } from '../theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Favorites'>;
@@ -12,10 +13,12 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'Favorites'>;
 export function FavoritesScreen() {
   const navigation = useNavigation<Nav>();
   const { ids, entities } = useAppSelector((s) => s.favorites);
-  const items = ids.map((id) => entities[id]).filter(Boolean);
+  const items: Product[] = ids
+    .map((id) => entities[id])
+    .filter((p): p is Product => p != null);
 
   const renderItem = useCallback(
-    ({ item }: { item: (typeof items)[0] }) => (
+    ({ item }: { item: Product }) => (
       <ProductCard
         product={item}
         onPress={() => navigation.navigate('Detail', { product: item })}

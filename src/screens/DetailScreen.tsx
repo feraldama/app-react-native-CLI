@@ -52,10 +52,10 @@ export function DetailScreen() {
     );
   }, [imageUrl]);
 
-  const imgStyle = [
-    styles.image,
-    imageHeight != null && { height: imageHeight },
-  ];
+  const imgStyle =
+    imageHeight != null
+      ? [styles.image, { height: imageHeight }]
+      : styles.image;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>

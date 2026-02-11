@@ -78,7 +78,8 @@ export const fetchProducts = createAsyncThunk(
 export const fetchMoreProducts = createAsyncThunk(
   'products/fetchMoreProducts',
   async (_, { getState, rejectWithValue }) => {
-    const state = getState() as { products: ProductsState };
+    type SliceState = { products: ProductsState };
+    const state = getState() as SliceState;
     const { page, searchQuery } = state.products;
     if (searchQuery) return rejectWithValue('No paginar en búsqueda');
     try {

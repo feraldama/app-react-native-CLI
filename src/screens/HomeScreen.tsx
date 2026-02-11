@@ -18,6 +18,7 @@ import { toggleFavorite } from '../store/favoritesSlice';
 import { useDebounce } from '../hooks/useDebounce';
 import { ProductCard } from '../components/ProductCard';
 import { SearchInput } from '../components/SearchInput';
+import type { Product } from '../types/product';
 import { colors, spacing } from '../theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -45,8 +46,10 @@ export function HomeScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    (dispatch(fetchProducts({ searchQuery: debouncedSearch })) as Promise<unknown>)
-      .finally(() => setRefreshing(false));
+    const promise = dispatch(
+      fetchProducts({ searchQuery: debouncedSearch })
+    ) as Promise<unknown>;
+    promise.finally(() => setRefreshing(false));
   }, [dispatch, debouncedSearch]);
 
   const loadMore = useCallback(() => {
@@ -55,7 +58,7 @@ export function HomeScreen() {
   }, [dispatch, searchQuery, hasMore, status]);
 
   const renderItem = useCallback(
-    ({ item }: { item: (typeof items)[0] }) => {
+    ({ item }: { item: Product }) => {
       const isFav = favoriteIds.includes(String(item.id));
       return (
         <ProductCard
