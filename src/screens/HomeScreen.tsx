@@ -65,7 +65,7 @@ export function HomeScreen() {
           onFavoritePress={() => {
             dispatch(toggleFavorite(item));
             Toast.show({
-              type: 'success',
+              type: isFav ? 'error' : 'success',
               text1: isFav ? 'Quitado de favoritos' : 'Agregado a favoritos',
             });
           }}

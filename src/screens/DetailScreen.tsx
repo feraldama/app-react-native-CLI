@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Toast from 'react-native-toast-message';
 import {
+  Dimensions,
   Image,
   ScrollView,
   StyleSheet,
@@ -23,31 +24,56 @@ export function DetailScreen() {
   const navigation = useNavigation<Nav>();
   const dispatch = useAppDispatch();
   const product = params.product;
-  const favoriteIds = useAppSelector((s) => s.favorites.ids);
+  const favoriteIds = useAppSelector(s => s.favorites.ids);
   const isFavorite = favoriteIds.includes(String(product.id));
 
   const handleToggleFavorite = () => {
     dispatch(toggleFavorite(product));
     Toast.show({
-      type: 'success',
+      type: isFavorite ? 'error' : 'success',
       text1: isFavorite ? 'Quitado de favoritos' : 'Agregado a favoritos',
     });
   };
 
   const imageUrl = product.images?.[0] ?? product.thumbnail;
-  const [imageError, setImageError] = React.useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageHeight, setImageHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!imageUrl) return;
+    Image.getSize(
+      imageUrl,
+      (width, height) => {
+        const screenWidth = Dimensions.get('window').width;
+        const aspectHeight = (height / width) * screenWidth;
+        setImageHeight(aspectHeight);
+      },
+      () => setImageHeight(280),
+    );
+  }, [imageUrl]);
+
+  const imgStyle = [
+    styles.image,
+    imageHeight != null && { height: imageHeight },
+  ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {!imageError ? (
         <Image
           source={{ uri: imageUrl }}
-          style={styles.image}
-          resizeMode="cover"
+          style={imgStyle}
+          resizeMode="contain"
           onError={() => setImageError(true)}
         />
       ) : (
-        <View style={[styles.image, styles.imagePlaceholder]} />
+        <View
+          style={[
+            styles.image,
+            styles.imagePlaceholder,
+            { height: imageHeight ?? 280 },
+          ]}
+        />
       )}
       <View style={styles.body}>
         {product.brand ? (
@@ -58,7 +84,11 @@ export function DetailScreen() {
           {product.discountPercentage ? (
             <>
               <Text style={styles.priceOriginal}>
-                ${(product.price / (1 - product.discountPercentage / 100)).toFixed(2)}
+                $
+                {(
+                  product.price /
+                  (1 - product.discountPercentage / 100)
+                ).toFixed(2)}
               </Text>
               <Text style={styles.price}>${product.price.toFixed(2)}</Text>
               <View style={styles.discountBadge}>
@@ -73,9 +103,7 @@ export function DetailScreen() {
         </View>
         <View style={styles.metaRow}>
           {product.rating != null ? (
-            <Text style={styles.rating}>
-              ★ {product.rating.toFixed(1)}
-            </Text>
+            <Text style={styles.rating}>★ {product.rating.toFixed(1)}</Text>
           ) : null}
           {product.category ? (
             <View style={styles.categoryBadge}>
@@ -94,7 +122,9 @@ export function DetailScreen() {
         <TouchableOpacity
           style={[styles.favButton, isFavorite && styles.favButtonActive]}
           onPress={handleToggleFavorite}
-          accessibilityLabel={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+          accessibilityLabel={
+            isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'
+          }
           accessibilityHint="Doble tap para guardar o quitar de favoritos"
         >
           <Text style={styles.favButtonText}>
@@ -117,7 +147,11 @@ export function DetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   content: { paddingBottom: spacing.xxl },
-  image: { width: '100%', height: 280, backgroundColor: colors.border },
+  image: {
+    width: '100%',
+    minHeight: 200,
+    backgroundColor: colors.border,
+  },
   imagePlaceholder: { backgroundColor: colors.border },
   body: { padding: spacing.lg },
   brand: {
