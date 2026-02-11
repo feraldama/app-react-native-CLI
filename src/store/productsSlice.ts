@@ -3,6 +3,33 @@ import type { Product } from '../types/product';
 import { getProducts, searchProducts } from '../api/client';
 
 const LIMIT = 10;
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(() => resolve(), ms));
+}
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  onRetry?: (attempt: number) => void
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (attempt < MAX_RETRIES) {
+        onRetry?.(attempt);
+        await delay(RETRY_DELAY_MS);
+      } else {
+        throw e;
+      }
+    }
+  }
+  throw lastError;
+}
 
 export type ProductsStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
@@ -33,12 +60,14 @@ export const fetchProducts = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      if (searchQuery.trim()) {
-        const res = await searchProducts(searchQuery.trim());
-        return { ...res, searchQuery: searchQuery.trim() };
-      }
-      const res = await getProducts(LIMIT, 0);
-      return { ...res, searchQuery: '' };
+      return await withRetry(async () => {
+        if (searchQuery.trim()) {
+          const res = await searchProducts(searchQuery.trim());
+          return { ...res, searchQuery: searchQuery.trim() };
+        }
+        const res = await getProducts(LIMIT, 0);
+        return { ...res, searchQuery: '' };
+      });
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error al cargar productos';
       return rejectWithValue(message);
@@ -53,9 +82,10 @@ export const fetchMoreProducts = createAsyncThunk(
     const { page, searchQuery } = state.products;
     if (searchQuery) return rejectWithValue('No paginar en búsqueda');
     try {
-      const skip = page * LIMIT;
-      const res = await getProducts(LIMIT, skip);
-      return res;
+      return await withRetry(async () => {
+        const skip = page * LIMIT;
+        return getProducts(LIMIT, skip);
+      });
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error al cargar más';
       return rejectWithValue(message);

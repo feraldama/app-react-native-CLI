@@ -5,6 +5,7 @@ import {
   View,
   TextInputProps,
 } from 'react-native';
+import { colors, spacing, borderRadius } from '../theme';
 
 interface SearchInputProps extends Pick<TextInputProps, 'placeholder'> {
   value: string;
@@ -23,23 +24,25 @@ export function SearchInput({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#999"
+        placeholderTextColor={colors.placeholder}
         autoCapitalize="none"
         autoCorrect={false}
+        accessibilityLabel="Buscar productos"
+        accessibilityHint="Escribe para buscar productos por título"
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: { padding: 12, backgroundColor: '#f5f5f5' },
+  wrapper: { padding: spacing.md, backgroundColor: colors.background },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: colors.border,
   },
 });

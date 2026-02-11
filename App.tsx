@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Provider, useDispatch } from 'react-redux';
+import Toast from 'react-native-toast-message';
+import { Provider } from 'react-redux';
+import { useAppDispatch } from './src/store';
 import { NavigationContainer } from '@react-navigation/native';
 import { store } from './src/store';
 import { loadFavoritesFromStorage } from './src/store/favoritesSlice';
@@ -9,12 +11,12 @@ import { setFavorites } from './src/store/favoritesSlice';
 import { AppStack } from './src/navigation/AppStack';
 
 function AppContent() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const isDarkMode = useColorScheme() === 'dark';
 
   useEffect(() => {
     loadFavoritesFromStorage().then((list) => {
-      dispatch(setFavorites(list) as never);
+      dispatch(setFavorites(list));
     });
   }, [dispatch]);
 
@@ -24,6 +26,7 @@ function AppContent() {
       <NavigationContainer>
         <AppStack />
       </NavigationContainer>
+      <Toast />
     </>
   );
 }

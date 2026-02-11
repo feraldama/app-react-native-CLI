@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
+import Toast from 'react-native-toast-message';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,31 +11,30 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useDispatch, useSelector } from 'react-redux';
 import type { RootStackParamList } from '../navigation/types';
-import type { RootState } from '../store';
+import { useAppDispatch, useAppSelector } from '../store';
 import { fetchProducts, fetchMoreProducts } from '../store/productsSlice';
 import { toggleFavorite } from '../store/favoritesSlice';
 import { useDebounce } from '../hooks/useDebounce';
 import { ProductCard } from '../components/ProductCard';
 import { SearchInput } from '../components/SearchInput';
+import { colors, spacing } from '../theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+const ITEM_HEIGHT = 124;
 
 export function HomeScreen() {
   const navigation = useNavigation<Nav>();
-  const dispatch = useDispatch();
-  const { items, status, error, hasMore, searchQuery } = useSelector(
-    (s: RootState) => s.products
-  );
-  const favoriteIds = useSelector((s: RootState) => s.favorites.ids);
+  const dispatch = useAppDispatch();
+  const { items, status, error, hasMore, searchQuery } = useAppSelector((s) => s.products);
+  const favoriteIds = useAppSelector((s) => s.favorites.ids);
   const [searchText, setSearchText] = React.useState('');
   const [refreshing, setRefreshing] = React.useState(false);
   const debouncedSearch = useDebounce(searchText, 300);
 
   const loadInitial = useCallback(
     (query?: string) => {
-      dispatch(fetchProducts({ searchQuery: query ?? debouncedSearch }) as never);
+      dispatch(fetchProducts({ searchQuery: query ?? debouncedSearch }));
     },
     [dispatch, debouncedSearch]
   );
@@ -45,24 +45,33 @@ export function HomeScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    (dispatch(fetchProducts({ searchQuery: debouncedSearch }) as never) as Promise<unknown>)
+    (dispatch(fetchProducts({ searchQuery: debouncedSearch })) as Promise<unknown>)
       .finally(() => setRefreshing(false));
   }, [dispatch, debouncedSearch]);
 
   const loadMore = useCallback(() => {
     if (searchQuery || !hasMore || status === 'loading') return;
-    dispatch(fetchMoreProducts() as never);
+    dispatch(fetchMoreProducts());
   }, [dispatch, searchQuery, hasMore, status]);
 
   const renderItem = useCallback(
-    ({ item }: { item: (typeof items)[0] }) => (
-      <ProductCard
-        product={item}
-        onPress={() => navigation.navigate('Detail', { product: item })}
-        isFavorite={favoriteIds.includes(String(item.id))}
-        onFavoritePress={() => dispatch(toggleFavorite(item) as never)}
-      />
-    ),
+    ({ item }: { item: (typeof items)[0] }) => {
+      const isFav = favoriteIds.includes(String(item.id));
+      return (
+        <ProductCard
+          product={item}
+          onPress={() => navigation.navigate('Detail', { product: item })}
+          isFavorite={isFav}
+          onFavoritePress={() => {
+            dispatch(toggleFavorite(item));
+            Toast.show({
+              type: 'success',
+              text1: isFav ? 'Quitado de favoritos' : 'Agregado a favoritos',
+            });
+          }}
+        />
+      );
+    },
     [navigation, favoriteIds, dispatch]
   );
 
@@ -84,7 +93,12 @@ export function HomeScreen() {
       ) : error && items.length === 0 ? (
         <View style={styles.centered}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => loadInitial()}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => loadInitial()}
+            accessibilityLabel="Reintentar"
+            accessibilityHint="Doble tap para intentar cargar productos de nuevo"
+          >
             <Text style={styles.retryText}>Reintentar</Text>
           </TouchableOpacity>
         </View>
@@ -93,7 +107,32 @@ export function HomeScreen() {
           data={items}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
+          getItemLayout={
+            items.length > 0
+              ? (_, index) => ({
+                  length: ITEM_HEIGHT,
+                  offset: ITEM_HEIGHT * index,
+                  index,
+                })
+              : undefined
+          }
+          contentContainerStyle={[
+            styles.listContent,
+            items.length === 0 && styles.emptyListContent,
+          ]}
+          ListEmptyComponent={
+            status === 'succeeded' && items.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateIcon}>🔍</Text>
+                <Text style={styles.emptyStateTitle}>Sin resultados</Text>
+                <Text style={styles.emptyStateText}>
+                  {searchQuery
+                    ? `No hay productos que coincidan con "${searchQuery}"`
+                    : 'No se encontraron productos. Prueba otra búsqueda.'}
+                </Text>
+              </View>
+            ) : null
+          }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
@@ -105,7 +144,12 @@ export function HomeScreen() {
                 <ActivityIndicator />
               </View>
             ) : hasMore && !searchQuery && items.length > 0 ? (
-              <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                onPress={loadMore}
+                accessibilityLabel="Cargar más productos"
+                accessibilityHint="Doble tap para cargar más productos en la lista"
+              >
                 <Text style={styles.loadMoreText}>Cargar más</Text>
               </TouchableOpacity>
             ) : null
@@ -117,14 +161,40 @@ export function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  listContent: { padding: 12, paddingBottom: 24 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  loadingText: { marginTop: 12, color: '#666' },
-  errorText: { color: '#c00', textAlign: 'center', marginBottom: 16 },
-  retryButton: { backgroundColor: '#2563eb', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
-  retryText: { color: '#fff', fontWeight: '600' },
-  footer: { padding: 16, alignItems: 'center' },
-  loadMoreButton: { padding: 16, alignItems: 'center' },
-  loadMoreText: { color: '#2563eb', fontWeight: '600' },
+  container: { flex: 1, backgroundColor: colors.background },
+  listContent: { padding: spacing.md, paddingBottom: spacing.xl },
+  emptyListContent: { flexGrow: 1 },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  emptyStateIcon: { fontSize: 56, marginBottom: spacing.md },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    fontSize: 15,
+    color: colors.textMuted,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl },
+  loadingText: { marginTop: spacing.md, color: colors.textMuted },
+  errorText: { color: colors.danger, textAlign: 'center', marginBottom: spacing.lg },
+  retryButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: 8,
+  },
+  retryText: { color: colors.surface, fontWeight: '600' },
+  footer: { padding: spacing.lg, alignItems: 'center' },
+  loadMoreButton: { padding: spacing.lg, alignItems: 'center' },
+  loadMoreText: { color: colors.primary, fontWeight: '600' },
 });
